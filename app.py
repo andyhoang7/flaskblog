@@ -26,7 +26,7 @@ app.config['SECRET_KEY']= 'supersecret'
 POSTGRES = {
        'user': "thien",
        'pw': "qwerty",
-       'db': "blog",
+       'db': "thienblog",
        'host': "localhost",
        'port': 5432,
    }
@@ -40,6 +40,10 @@ class Flags(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+class Likes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +53,8 @@ class Users(UserMixin, db.Model):
     posts = db.relationship("Posts", backref=db.backref('users', lazy=True))
     comments = db.relationship("Comments", backref=db.backref('users', lazy=True))
     flags = db.relationship('Flags', 
+        backref=db.backref('users', lazy=True))
+    likes = db.relationship('Likes', 
         backref=db.backref('users', lazy=True))
     
     def set_pass(self, passw):
@@ -68,6 +74,8 @@ class Posts(db.Model):
     comments = db.relationship('Comments', backref=db.backref('posts'), lazy="dynamic")
     view_count = db.Column(db.Integer, default=0)
     flags = db.relationship('Flags',
+        backref=db.backref('posts', lazy=True) )
+    likes = db.relationship('Likes',
         backref=db.backref('posts', lazy=True) )
 
 class Comments(db.Model):
@@ -196,15 +204,22 @@ def singlepost(id):
     post = Posts.query.filter_by(id=id).first() 
     a = post.comments.all()
     post.view_count += 1
+    like_count = Likes.query.filter_by(id=id).count()
     #check flag or not
     check_flag = Flags.query.filter_by(user_id=current_user.id, post_id = id).first()
     if check_flag :
         is_flag = True # show unflag but
     else:
         is_flag = False # show flag but
+    
+    check_like = Likes.query.filter_by(user_id=current_user.id, post_id = id).first()
+    if check_like :
+        is_liked = True # show unlike but
+    else:
+        is_liked = False # show like but
     # end check
     db.session.commit()
-    return render_template('singlepost.html', post = post, comments = a, is_flag=is_flag)
+    return render_template('singlepost.html', post = post, comments = a, is_flag=is_flag, is_liked=is_liked, like_count=like_count)
 
 
 @app.route('/profile/posts/<id>/flag', methods=['GET'])
@@ -216,6 +231,20 @@ def flag_post(id):
         flag = Flags(user_id=current_user.id,
                     post_id=id)
         db.session.add(flag)
+    else:
+        db.session.delete(check)
+    db.session.commit()
+    return redirect(url_for('singlepost', id = id))
+
+@app.route('/profile/posts/<id>/like', methods=['GET'])
+@login_required
+def like_post(id):
+    post = Posts.query.filter_by(id=id).first()
+    check = Likes.query.filter_by(user_id=current_user.id, post_id=id).first()
+    if not check:
+        like = Likes(user_id=current_user.id,
+                    post_id=id)
+        db.session.add(like)
     else:
         db.session.delete(check)
     db.session.commit()
@@ -318,4 +347,4 @@ def deleteuser(id):
     
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5002)
