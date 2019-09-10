@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+<ul>
+<li>Post Title: {{post.title}} </li>
+<li>Post Content: {{post.body}} </li>
+<li>Posted by: {{post.users.username}} </li>
+<li>Post Views: {{post.view_count}} </li>
+<a href="{{url_for('deletepost', id=post.id)}}">Delete</a>
+<a href="{{url_for('editpost', id=post.id)}}">Edit</a>
+<a href="{{url_for('newcomment', id=post.id)}}">Comment</a>
+
+
+{% if is_flag %}
+<a href="{{url_for('flag_post', id=post.id)}}">UNFLAG</a>
+{% else %}
+<a href="{{url_for('flag_post', id=post.id)}}">FLAG</a>
+{% endif %}
+
+
+{% for comment in comments %}
+<li>{{comment.body}}</li>
+<a href="{{url_for('deletecomment', cid=comment.id, pid=post.id)}}">Delete</a>
+<a href="{{url_for('editcomment', cid=comment.id, pid=post.id)}}">Edit</a>
+
+{% endfor %}
+
+
+</ul>
+{% endblock %}

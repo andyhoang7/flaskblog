@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+{% for post in posts %}
+<ul>
+
+<li>
+<a href="{{url_for('singlepost', id=post.id)}}"> Post Title: {{post.title}} </a>
+<li>Post Content: {{post.body}} </li>
+<li> Created at: {{post.created}}  </li>
+<li>Posted by: {{post.users.username}} </li>
+<li>Post Views: {{post.view_count}} </li>
+</li>
+</ul>
+{% endfor %}
+
+{% endblock %}
