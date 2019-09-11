@@ -1,11 +1,15 @@
 from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+
 from sqlalchemy import desc
 from flask_migrate import Migrate
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
+from wtforms.widgets import TextArea
+
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import os
@@ -30,9 +34,9 @@ POSTGRES = {
        'host': "localhost",
        'port': 5432,
    }
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'] 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:\
-# %(port)s/%(db)s' % POSTGRES
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL'] 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:\
+%(port)s/%(db)s' % POSTGRES
 
 
 ############define models
@@ -46,6 +50,9 @@ class Likes(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+class Followings(db.Model):
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),primary_key=True)
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, nullable=False, unique=True)
@@ -58,6 +65,11 @@ class Users(UserMixin, db.Model):
     likes = db.relationship('Likes', 
         backref=db.backref('users', lazy=True))
     
+    haha = db.relationship("Followings", foreign_keys=[Followings.follower_id], backref=db.backref(
+        'follower', lazy='joined'), lazy="dynamic")
+    hihi = db.relationship("Followings", foreign_keys=[Followings.followed_id], backref=db.backref(
+        'followed', lazy='joined'), lazy="dynamic")
+    
     def set_pass(self, passw):
         self.password = generate_password_hash(passw)
         
@@ -65,6 +77,7 @@ class Users(UserMixin, db.Model):
         return check_password_hash(self.password, passw)
 
 
+    
 class Posts(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
@@ -108,7 +121,7 @@ class Register(FlaskForm):
 
 class NewPost(FlaskForm):
     title = StringField("Post Title", validators=[DataRequired(), Length(min=3,max=255, message="min 3, max 255")])
-    body = StringField("Post Content", validators=[DataRequired(), Length(min=3,max=10000, message="min 3, max 10000")])
+    body = StringField("Post Content", validators=[DataRequired(), Length(min=3,max=10000, message="min 3, max 10000")], widget=TextArea())
     submit = SubmitField("Post")
     
 class NewComment(FlaskForm):
@@ -123,8 +136,12 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
-    template = ['home.html', 'includes/navbar.html']
-    return render_template(template)
+    if current_user.is_authenticated:
+        template = ['home.html', 'includes/navbar.html', 'includes/pageheader.html']
+        posts = Posts.query.order_by(desc(Posts.id))
+        return render_template(template, posts=posts)
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/register', methods=['post', 'get'])
 def register():
@@ -168,20 +185,26 @@ def logout():
 @app.route('/profile')
 @login_required
 def profile():
-    template = ['profile.html', 'includes/navbar.html']
+    template = ['profile.html', 'includes/navbar.html', 'includes/pageheader.html']
     return render_template(template, name = current_user.username)            
 
 @app.route('/posts')
 @login_required
 def allposts():
-    posts = Posts.query.all()
+    posts = Posts.query.order_by(desc(Posts.id)).all()
     return render_template('posts.html', posts = posts)   
                 
 @app.route('/profile/posts')
 @login_required
 def profileposts():
-    posts = Posts.query.filter_by(author=current_user.id).all()
-    return render_template('posts.html', posts = posts)
+    posts = Posts.query.filter_by(author=current_user.id).order_by(desc(Posts.id)).all()
+    return render_template('myposts.html', posts = posts)
+
+@app.route('/profile/<id>/posts')
+@login_required
+def userposts(id):
+    posts = Posts.query.filter_by(author=id).order_by(desc(Posts.id)).all()
+    return render_template('myposts.html', posts = posts)
 
 @app.route('/profile/posts/add', methods=['POST', 'GET'])
 @login_required
@@ -205,7 +228,7 @@ def singlepost(id):
     post = Posts.query.filter_by(id=id).first() 
     a = post.comments.all()
     post.view_count += 1
-    like_count = Likes.query.filter_by(id=id).count()
+    like_count = Likes.query.filter_by(post_id=id).count()
     #check flag or not
     check_flag = Flags.query.filter_by(user_id=current_user.id, post_id = id).first()
     if check_flag :
@@ -220,7 +243,7 @@ def singlepost(id):
         is_liked = False # show like but
     # end check
     db.session.commit()
-    return render_template('singlepost.html', post = post, comments = a, is_flag=is_flag, is_liked=is_liked, like_count=like_count)
+    return render_template('singlepost.html', post = post, comments = a, is_flag=is_flag, is_liked=is_liked, like_count=like_count, name=post.users.username)
 
 
 @app.route('/profile/posts/<id>/flag', methods=['GET'])
@@ -241,6 +264,7 @@ def flag_post(id):
 @login_required
 def like_post(id):
     post = Posts.query.filter_by(id=id).first()
+    
     check = Likes.query.filter_by(user_id=current_user.id, post_id=id).first()
     if not check:
         like = Likes(user_id=current_user.id,
@@ -346,6 +370,27 @@ def deleteuser(id):
     db.session.commit()
     return "OK"
     
+
+@app.route('/follow/<int:id>')
+@login_required
+def follow(id):
+    check = Followings.query.filter_by(follower_id = current_user.id, followed_id = id).first()
+    if check:
+        flash(['hello, plz no'])
+        return redirect(url_for('top_posts'))
+    else:
+        is_followed = Followings(follower_id = current_user.id, followed_id = id)
+
+        db.session.add(is_followed)
+        db.session.commit()
+        return redirect(url_for('profile', id=id))
+
+@app.route('/profile/following')
+@login_required
+def following():
+    followings = Followings.query.filter_by(follower_id=current_user.id).all()
+    return render_template('following.html', followings=followings)
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)

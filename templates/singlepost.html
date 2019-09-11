@@ -1,11 +1,33 @@
-{% extends "layout.html" %} {% block content %}
-<ul>
-  <li>Post Title: {{ post.title }}</li>
-  <li>Post Content: {{ post.body }}</li>
-  <li>Posted by: {{ post.users.username }}</li>
-  <li>Post Views: {{ post.view_count }}</li>
-  <lik>Likes: {{ like_count }}</lik>
-  <a href="{{url_for('deletepost', id=post.id)}}">Delete</a>
+{% extends "layout.html" %} 
+
+
+{% block content %}
+{% include 'includes/navbar.html'%}
+
+<header class="masthead" style="background-image: url('{{ url_for('static', filename='blog1.jpg') }}')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>{{ post.title }}</h1>
+            <span class="meta">Posted by
+              <a href="#">{{ post.users.username }}</a>
+              on {{post.created.strftime(" %B %d, %Y")}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+<article>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <p>{{ post.body }}</p>
+
+          <p>Post Views: {{ post.view_count }}. Post Likes: {{ like_count }}</p>
+            <a href="{{url_for('deletepost', id=post.id)}}">Delete</a>
   <a href="{{url_for('editpost', id=post.id)}}">Edit</a>
   <a href="{{url_for('newcomment', id=post.id)}}">Comment</a>
 
@@ -13,15 +35,39 @@
   <a href="{{url_for('flag_post', id=post.id)}}">UNFLAG</a>
   {% else %}
   <a href="{{url_for('flag_post', id=post.id)}}">FLAG</a>
-  {% endif %} {% if is_liked %}
+  {% endif %} 
+  
+  {% if is_liked %}
   <a href="{{url_for('like_post', id=post.id)}}">UNLIKE</a>
   {% else %}
   <a href="{{url_for('like_post', id=post.id)}}">LIKE</a>
-  {% endif %} {% for comment in comments %}
+  {% endif %} 
+
+  {% if current_user.is_authenticated and current_user.id!=post.author_id %}
+      <a
+        href="{{url_for('follow', id=post.users.id)}}"
+        class="btn btn-outline-warning btn-small"
+        >Follow</a
+      >
+      
+      {% endif %}
+  
+  
+  {% for comment in comments %}
   <li>{{ comment.body }}</li>
   <a href="{{url_for('deletecomment', cid=comment.id, pid=post.id)}}">Delete</a>
   <a href="{{url_for('editcomment', cid=comment.id, pid=post.id)}}">Edit</a>
 
   {% endfor %}
-</ul>
+        </div>
+      </div>
+    </div>
+  </article>
+
+
+
+
+
+
+
 {% endblock %}

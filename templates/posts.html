@@ -2,6 +2,24 @@
 
 
 {% block content %}
+{% include 'includes/navbar.html'%}
+<header class="masthead" style=" background-image: url('{{ url_for('static', filename='blog7.jpg') }}')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>Words are a lens to focus one's mind.</h1>
+            <span class="meta">
+              <a href="#">Ayn Rand</a>
+              </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
  <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
@@ -18,7 +36,7 @@
           </a>
           <p class="post-meta">Posted by
             <a href="#">{{post.users.username}}</a>
-            on {{post.created}} | Views: {{post.view_count}}</p>
+            on {{post.created.strftime(" %B %d, %Y")}} | Views: {{post.view_count}}</p>
         </div>
         <hr>
         
@@ -29,5 +47,5 @@
     </div>
   </div>
 
-  <hr>
+
 {% endblock %}

@@ -1,15 +1,2 @@
 {% extends "layout.html"%}
 
-
-{% block content %}
- <h1>HELLOOO welcome {{current_user.email}}</h1>
- <a href="{{url_for('allposts')}}"> See All Posts </a>
-  <a href="{{url_for('profileposts')}}"> See User Posts </a>
-  <a href="{{url_for('top_posts')}}"> See Most Popular Posts </a>
-
-
-
-
- <a href="{{url_for('logout')}}">Log Out</a>
-
-{% endblock %}

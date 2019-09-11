@@ -2,7 +2,11 @@
 <html>
   <head>
     {% block head %}
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='all.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+
+
+
   <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -12,7 +16,7 @@
   </head>
 
   <body>
-  {% include "includes/navbar.html" %}
+
     <div id="content">
                   {% with messages = get_flashed_messages() %}
 
@@ -22,7 +26,7 @@
 
                 {% for message in messages %}
 
-                <li>{{ message[0] }}</li>
+                <li>{{ message }}</li>
 
                 {% endfor %}
 
@@ -32,10 +36,24 @@
 
                 {% endwith %}
 
-    {% block content %}{% endblock %}</div>
+    {% block content %}
+      {% include "includes/navbar.html" %}
+  {% include "includes/pageheader.html" %}
+    
+    
+    {% endblock %}</div>
     <div id="footer">
       {% block footer %}
-      &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
+      <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          
+          <p class="copyright text-muted">Copyright &copy; Your Website 2019</p>
+        </div>
+      </div>
+    </div>
+  </footer>
       {% endblock %}
     </div>
   </body>
