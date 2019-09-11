@@ -2,18 +2,32 @@
 
 
 {% block content %}
-
+ <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
 {% for post in posts %}
-<ul>
 
-<li>
-<a href="{{url_for('singlepost', id=post.id)}}"> Post Title: {{post.title}} </a>
-<li>Post Content: {{post.body}} </li>
-<li> Created at: {{post.created}}  </li>
-<li>Posted by: {{post.users.username}} </li>
-<li>Post Views: {{post.view_count}} </li>
-</li>
-</ul>
+        <div class="post-preview">
+          <a href="{{url_for('singlepost', id=post.id)}}">
+            <h2 class="post-title">
+              {{post.title}}
+            </h2>
+            <h3 class="post-subtitle">
+              {{post.body}}
+            </h3>
+          </a>
+          <p class="post-meta">Posted by
+            <a href="#">{{post.users.username}}</a>
+            on {{post.created}} | Views: {{post.view_count}}</p>
+        </div>
+        <hr>
+        
+
+
 {% endfor %}
+      </div>
+    </div>
+  </div>
 
+  <hr>
 {% endblock %}
