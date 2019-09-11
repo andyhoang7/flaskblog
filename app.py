@@ -30,8 +30,8 @@ POSTGRES = {
        'host': "localhost",
        'port': 5432,
    }
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:\
-   %(port)s/%(db)s' % POSTGRES
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
 
 
 ############define models
