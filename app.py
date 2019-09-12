@@ -110,7 +110,7 @@ class Register(FlaskForm):
     username = StringField("User Name", validators=[DataRequired("Please input your username"), Length(min=3, max=20, message="username must have at least 3 char and max 20 chars")])
     email = StringField("Email Address", validators=[DataRequired("Please input your email"), Email("Please use @")])
     password = PasswordField("Password", validators=[DataRequired(), EqualTo("confirm")])
-    confirm = StringField("Confirm Password", validators=[DataRequired()])
+    confirm = PasswordField("Confirm Password", validators=[DataRequired()])
     submit = SubmitField("Register")
     
     def validate_username(self, field):

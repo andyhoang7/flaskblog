@@ -27,38 +27,61 @@
           <p>{{ post.body }}</p>
 
           <p>Post Views: {{ post.view_count }}. Post Likes: {{ like_count }}</p>
-            <a href="{{url_for('deletepost', id=post.id)}}">Delete</a>
-  <a href="{{url_for('editpost', id=post.id)}}">Edit</a>
-  <a href="{{url_for('newcomment', id=post.id)}}">Comment</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('deletepost', id=post.id)}}">Delete</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('editpost', id=post.id)}}">Edit</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('newcomment', id=post.id)}}">Comment</a>
 
   {% if is_flag %}
-  <a href="{{url_for('flag_post', id=post.id)}}">UNFLAG</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('flag_post', id=post.id)}}">UNFLAG</a>
   {% else %}
-  <a href="{{url_for('flag_post', id=post.id)}}">FLAG</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('flag_post', id=post.id)}}">FLAG</a>
   {% endif %} 
   
   {% if is_liked %}
-  <a href="{{url_for('like_post', id=post.id)}}">UNLIKE</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('like_post', id=post.id)}}">UNLIKE</a>
   {% else %}
-  <a href="{{url_for('like_post', id=post.id)}}">LIKE</a>
+  <a class="btn btn-outline-info btn-small" href="{{url_for('like_post', id=post.id)}}">LIKE</a>
   {% endif %} 
 
   {% if current_user.is_authenticated and current_user.id!=post.author_id %}
       <a
         href="{{url_for('follow', id=post.users.id)}}"
-        class="btn btn-outline-warning btn-small"
+        class="btn btn-outline-info btn-sm"
         >Follow</a
       >
       
       {% endif %}
   
   
-  {% for comment in comments %}
-  <li>{{ comment.body }}</li>
-  <a href="{{url_for('deletecomment', cid=comment.id, pid=post.id)}}">Delete</a>
-  <a href="{{url_for('editcomment', cid=comment.id, pid=post.id)}}">Edit</a>
+  <div class="accordion" id="accordionExample">
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      <h2 class="mb-0">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Comment List
+        </button>
+      </h2>
+    </div>
 
-  {% endfor %}
+    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+    
+      <div class="card-body">
+      {% for comment in comments %}
+      <ul>
+      {{ comment.body }}
+      <a href="{{url_for('deletecomment', cid=comment.id, pid=post.id)}}">Delete</a>
+      <a href="{{url_for('editcomment', cid=comment.id, pid=post.id)}}">Edit</a>
+      </ul>
+
+          {% endfor %}
+      </div>
+    </div>
+  </div>
+  </div>
+
+
+
+
         </div>
       </div>
     </div>
